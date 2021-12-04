@@ -1,0 +1,7 @@
+.secret
+package-lock.json
+artifacts/
+node_modules/
+cache/
+.vscode/
+flatten/
