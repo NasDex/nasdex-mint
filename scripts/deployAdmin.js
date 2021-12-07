@@ -3,7 +3,7 @@ const { expect } = require("chai");
 const env = require("hardhat");
 const { ethers } = require("hardhat");
 
-const SWAP_FACTORY = "0x21051bb022a8B5aED0F0df7B34c9F067127c39bD";
+const SWAP_FACTORY = "0x60065e6B6d53aAd28C381FD9a4aa2ec839852e91";
 
 async function main() {
     [deployer] = await ethers.getSigners();

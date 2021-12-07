@@ -1,6 +1,12 @@
+const { loadFixture } = require("@ethereum-waffle/provider");
 const { BigNumber } = require("@ethersproject/bignumber");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const { swapFixture } = require("./Fixtures");
+
+const {deployMockContract} = require('@ethereum-waffle/mock-contract');
+
+const IUniswapPair = require("../artifacts/contracts/interface/IUniswapPair.sol/IUniswapPair");
 
 describe("LongStaking cntract", function() {
 
@@ -14,8 +20,7 @@ describe("LongStaking cntract", function() {
 
     let nsdxToken;
     let _longToken;
-    let camouflagedRouter;
-    let camouflagedLPToken;
+    let _lpToken;
     let _masterChef;
     let _longStaking;
 
@@ -31,11 +36,17 @@ describe("LongStaking cntract", function() {
         const MasterChef = await ethers.getContractFactory("MasterChef");
         const LongStaking = await ethers.getContractFactory("LongStaking");
         [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
+
+        const { factory, router, pair } = await loadFixture(swapFixture);
+        _lpToken = pair;
+        lpTotalSupply = await pair.balanceOf(owner.address);
+        const token0Addr = await pair.token0();
+        const token1Addr = await pair.token1();
+        const token0 = await AssetToken.attach(token0Addr);
+        const token1 = await AssetToken.attach(token1Addr);
         
         nsdxToken = await AssetToken.deploy("nsdex", "NSDX");
         _longToken = await StakingToken.deploy("Long Token", "lA");
-        camouflagedRouter = owner;
-        camouflagedLPToken = await StakingToken.deploy("LP A Token", "lpA");
 
         _masterChef = await MasterChef.deploy(
             nsdxToken.address, 
@@ -48,18 +59,19 @@ describe("LongStaking cntract", function() {
             nsdxToken.address,
             START_BLOCK + 10,
             _masterChef.address,
-            camouflagedRouter.address
+            router.address
         );
 
         await _longToken.transferOwnership(_longStaking.address);
 
         await _masterChef.add(1000, _longToken.address, false);
         let rootPoolId = (await _masterChef.poolLength()) - 1;
-        await _longStaking.add(rootPoolId, _longToken.address, camouflagedLPToken.address, false);
+        await _longStaking.add(rootPoolId, _longToken.address, _lpToken.address, false);
         poolId = (await _longStaking.poolLength()) - 1;
 
-        await camouflagedLPToken.mint(owner.address, lpTotalSupply);
-        await camouflagedLPToken.approve(_longStaking.address, lpTotalSupply);
+        await _lpToken.approve(_longStaking.address, lpTotalSupply);
+        await token0.approve(_longStaking.address, BigNumber.from('1000000000000000000000000000000'));
+        await token1.approve(_longStaking.address, BigNumber.from('1000000000000000000000000000000'));
 
         for(i = 0; i < 20; i++) {
             await ethers.provider.send("evm_mine", []);
@@ -87,7 +99,7 @@ describe("LongStaking cntract", function() {
         });
     });
 
-    describe("Deposit", function() {
+    describe("DepositLP", function() {
         it("Should can deposit", async function() {
             expect(
                 await _longStaking.depositLP(
@@ -98,7 +110,7 @@ describe("LongStaking cntract", function() {
             .to
             .emit(_longStaking, "Deposit");
             expect(
-                await camouflagedLPToken.balanceOf(owner.address)
+                await _lpToken.balanceOf(owner.address)
             )
             .to
             .equal(
@@ -138,11 +150,11 @@ describe("LongStaking cntract", function() {
         });
     });
 
-    describe("Withdraw", function() {
+    describe("WithdrawLP", function() {
         let withdrawAmount = depositAmount.div(2);
         let balance1;
         it("Should can withdraw", async function() {
-            balance1 = await camouflagedLPToken.balanceOf(owner.address);
+            balance1 = await _lpToken.balanceOf(owner.address);
             expect(
                 await _longStaking.withdrawLP(
                     poolId,
@@ -164,10 +176,53 @@ describe("LongStaking cntract", function() {
                 withdrawAmount
             );
             expect(
-                await camouflagedLPToken.balanceOf(owner.address)
+                await _lpToken.balanceOf(owner.address)
             )
             .to
             .equal(balance1.add(depositAmount));
         })
+    });
+
+    describe("Deposit", function() {
+        it("Should can deposit", async function() {
+            expect(
+                await _longStaking.deposit(
+                    poolId,
+                    BigNumber.from('100000000000000000000'),
+                    BigNumber.from('100000000000000000000'),
+                    0,
+                    0,
+                    BigNumber.from('100000000000000000000')
+                )
+            )
+            .to
+            .emit(_longStaking, "Deposit");
+            
+            depositBlockNumber = await ethers.provider.getBlockNumber();
+        });
+    });
+
+    describe("Withdraw", function() {
+        it("Should can withdraw", async function() {
+            const userInfo = await _longStaking.userInfo(poolId, owner.address);
+            let withdrawAmount = userInfo.amount.div(2);
+            // let balance1 = await _lpToken.balanceOf(owner.address);
+            expect(
+                await _longStaking.withdraw(
+                    poolId,
+                    withdrawAmount,
+                    0,
+                    0,
+                    BigNumber.from('100000000000000000000')
+                )
+            )
+            .to
+            .emit(_longStaking, "Withdraw")
+            .withArgs(
+                owner.address, 
+                poolId, 
+                withdrawAmount
+            );
+        });
     });
 });

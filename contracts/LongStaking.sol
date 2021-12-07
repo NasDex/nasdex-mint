@@ -93,8 +93,9 @@ contract LongStaking is Ownable, ReentrancyGuard {
         }
         IERC20 tokenA = IERC20(_lpToken.token0());
         IERC20 tokenB = IERC20(_lpToken.token1());
-        tokenA.approve(address(masterChef), MAX_UINT256);
-        tokenB.approve(address(masterChef), MAX_UINT256);
+        tokenA.approve(address(swapRouter), MAX_UINT256);
+        tokenB.approve(address(swapRouter), MAX_UINT256);
+        _lpToken.approve(address(swapRouter), MAX_UINT256);
         _longToken.approve(address(masterChef), MAX_UINT256);
         uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
         poolInfo.push(PoolInfo(_longToken, _lpToken, lastRewardBlock, 0, _rootPid));
@@ -220,6 +221,8 @@ contract LongStaking is Ownable, ReentrancyGuard {
     /// @dev Actually, we withdraw (_amount) long tokens from MasterChef, and burn it.
     /// @param _pid The index of the pool.
     /// @param _amount Long token amount to withdraw.
+    /// @param _amountAMin minimum of tokenA amount that you expect when remove liquidity.
+    /// @param _deadline The latest execution time.
     function withdraw(
         uint256 _pid, 
         uint256 _amount, 
