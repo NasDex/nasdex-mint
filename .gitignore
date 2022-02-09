@@ -6,3 +6,6 @@ cache/
 .vscode/
 flatten/
 .VSCodeCounter/
+.yarn
+yarn.lock
+.pnp.cjs

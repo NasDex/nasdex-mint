@@ -5,7 +5,6 @@ pragma solidity ^0.8.2;
 import "./interface/IAsset_.sol";
 
 abstract contract AssetAdmin {
-
     // asset
     address public asset;
 
@@ -15,36 +14,62 @@ abstract contract AssetAdmin {
     }
 
     function asset_registerAsset(
-        address assetToken, 
-        address assetOracle, 
-        uint16 auctionDiscount, 
-        uint16 minCRatio, 
-        uint16 targetRatio, 
-        bool isInPreIPO, 
-        uint poolId, 
+        address assetToken,
+        address assetOracle,
+        uint16 auctionDiscount,
+        uint16 minCRatio,
+        uint16 targetRatio,
+        bool isInPreIPO,
+        uint256 poolId,
         IPOParams memory ipoParams
     ) internal {
-        IAsset_(asset).registerAsset(assetToken, assetOracle, auctionDiscount, minCRatio, targetRatio, isInPreIPO, poolId, ipoParams);
+        IAsset_(asset).registerAsset(
+            assetToken,
+            assetOracle,
+            auctionDiscount,
+            minCRatio,
+            targetRatio,
+            isInPreIPO,
+            poolId,
+            ipoParams
+        );
     }
 
     function asset_updateAsset(
-        address assetToken, 
-        address assetOracle, 
-        uint16 auctionDiscount, 
-        uint16 minCRatio, 
-        uint16 targetRatio, 
-        bool isInPreIPO, 
-        uint poolId, 
+        address assetToken,
+        address assetOracle,
+        uint16 auctionDiscount,
+        uint16 minCRatio,
+        uint16 targetRatio,
+        bool isInPreIPO,
+        uint256 poolId,
         IPOParams memory ipoParams
     ) external {
-        IAsset_(asset).updateAsset(assetToken, assetOracle, auctionDiscount, minCRatio, targetRatio, isInPreIPO, poolId, ipoParams);
+        IAsset_(asset).updateAsset(
+            assetToken,
+            assetOracle,
+            auctionDiscount,
+            minCRatio,
+            targetRatio,
+            isInPreIPO,
+            poolId,
+            ipoParams
+        );
     }
 
-    function asset_registerCollateral(address cAssetToken, address oracle, uint16 multiplier) external onlyOwner {
+    function asset_registerCollateral(
+        address cAssetToken,
+        address oracle,
+        uint16 multiplier
+    ) external onlyOwner {
         IAsset_(asset).registerCollateral(cAssetToken, oracle, multiplier);
     }
 
-    function asset_updateCollateral(address cAssetToken, address oracle, uint16 multiplier) external onlyOwner {
+    function asset_updateCollateral(
+        address cAssetToken,
+        address oracle,
+        uint16 multiplier
+    ) external onlyOwner {
         IAsset_(asset).updateCollateral(cAssetToken, oracle, multiplier);
     }
 
@@ -56,11 +81,22 @@ abstract contract AssetAdmin {
         IAsset_(asset).triggerIPO(assetToken);
     }
 
-    function asset_registerMigration(address assetToken, uint endPrice, uint8 endPriceDecimals) external onlyOwner {
-        IAsset_(asset).registerMigration(assetToken, endPrice, endPriceDecimals);
+    function asset_registerMigration(
+        address assetToken,
+        uint256 endPrice,
+        uint8 endPriceDecimals
+    ) external onlyOwner {
+        IAsset_(asset).registerMigration(
+            assetToken,
+            endPrice,
+            endPriceDecimals
+        );
     }
 
-    function asset_setCollateralInPreIPO(address cAssetToken, bool value) external onlyOwner {
+    function asset_setCollateralInPreIPO(address cAssetToken, bool value)
+        external
+        onlyOwner
+    {
         IAsset_(asset).setCollateralInPreIPO(cAssetToken, value);
     }
 

@@ -1,6 +1,11 @@
 const { BigNumber } = require("@ethersproject/bignumber");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const { loadFixture } = require("@ethereum-waffle/provider");
+const { swapFixture } = require("./Fixtures");
+const {deployMockContract} = require('@ethereum-waffle/mock-contract');
+
+const IChainlinkAggregator = require("../artifacts/contracts/interface/IChainlinkAggregator.sol/IChainlinkAggregator");
 
 describe("Admin contract", function() {
     let Mint;
@@ -15,9 +20,11 @@ describe("Admin contract", function() {
     let owner;
     let addr1;
     
-    let usdtToken;
+    let usdcToken;
     
     let adminInstance;
+
+    let mockOracle;
 
     // 0.2%
     const FEE_RATE = 2;
@@ -25,6 +32,15 @@ describe("Admin contract", function() {
     const START_BLOCK = 10000;
     const REWARD_PER_BLOCK = BigNumber.from('100000000000000000000'); // 100
     const NSDX_MAX_MINT = BigNumber.from('100000000000000000000000000'); // 0.1 billion.
+
+
+    const TOKEN_NAME_A = "Stock-A";
+    const TOKEN_SYMBOL_A = "nSTA";
+    const SHORT_TOKEN_NAME_A = "Short Stock-A";
+    const SHORT_TOKEN_SYMBOL_A = "sSTA";
+    const DISCOUNT = 800;
+    const MIN_CRATIO = 1500; // 1500 / 1000 = 150%
+    const TARGET_RATIO = 1800; // 180%
 
 
     before(async function() {
@@ -49,6 +65,9 @@ describe("Admin contract", function() {
         const Admin = await ethers.getContractFactory("Admin");
         [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
 
+        // swap
+        const { weth, factory, router, pair } = await loadFixture(swapFixture);
+
         // deploy Admin contract.
         adminInstance = await Admin.deploy(
             ethers.constants.AddressZero,
@@ -57,14 +76,14 @@ describe("Admin contract", function() {
             ethers.constants.AddressZero,
             ethers.constants.AddressZero,
             ethers.constants.AddressZero,
-            ethers.constants.AddressZero
+            factory.address
         );
 
         assetInstance = await Asset.deploy();
         positionsInstance = await Positions.deploy();
 
         // nTokenA = await AssetToken.deploy(TOKEN_NAME_A, TOKEN_SYMBOL_A);
-        usdtToken = await AssetToken.deploy("TetherUSD", "USDT");
+        usdcToken = await AssetToken.deploy("USD Coin", "USDC");
         // oracleSample = await OracleSample.deploy(BigNumber.from('3500000000'), 8);
 
         // ShortLock
@@ -95,7 +114,7 @@ describe("Admin contract", function() {
             nsdxToken.address, 
             START_BLOCK + 100, 
             masterChef.address, 
-            ethers.constants.AddressZero // TODO wrong address
+            router.address
         );
 
         // Mint
@@ -103,11 +122,12 @@ describe("Admin contract", function() {
             FEE_RATE, 
             assetInstance.address,
             positionsInstance.address,
-            usdtToken.address, 
+            usdcToken.address, 
             shortLock.address,
             shortStaking.address,
-            "0x0000000000000000000000000000000000000001", // TODO wrong address
-            ethers.constants.AddressZero // TODO wrong address
+            router.address,
+            weth.address, 
+            owner.address
         );
 
         await adminInstance.setShortStaking(shortStaking.address);
@@ -123,6 +143,9 @@ describe("Admin contract", function() {
         await assetInstance.transferOwnership(adminInstance.address);
         await mintInstance.transferOwnership(adminInstance.address);
         await masterChef.transferOwnership(adminInstance.address);
+
+        // oracle
+        mockOracle = await deployMockContract(owner, IChainlinkAggregator.abi);
     });
 
     beforeEach(async function() {
@@ -166,6 +189,55 @@ describe("Admin contract", function() {
             expect(await assetInstance.owner()).to.equal(addr1.address);
             expect(await mintInstance.owner()).to.equal(addr1.address);
             expect(await masterChef.owner()).to.equal(addr1.address);
-        })
-    })
+        });
+
+        it("Could transfer back", async function() {
+            await shortStaking.connect(addr1).transferOwnership(adminInstance.address);
+            await longStaking.connect(addr1).transferOwnership(adminInstance.address);
+            await shortLock.connect(addr1).transferOwnership(adminInstance.address);
+            await assetInstance.connect(addr1).transferOwnership(adminInstance.address);
+            await mintInstance.connect(addr1).transferOwnership(adminInstance.address);
+            await masterChef.connect(addr1).transferOwnership(adminInstance.address);
+
+            expect(await shortStaking.owner()).to.equal(adminInstance.address);
+            expect(await shortLock.owner()).to.equal(adminInstance.address);
+            expect(await assetInstance.owner()).to.equal(adminInstance.address);
+            expect(await mintInstance.owner()).to.equal(adminInstance.address);
+            expect(await masterChef.owner()).to.equal(adminInstance.address);
+        });
+    });
+
+    describe("Whitelist", function() {
+        it("Could whitelist a new nAsset", async function() {
+
+            let blockNumber = await ethers.provider.getBlockNumber();
+            let block = await ethers.provider.getBlock(blockNumber);
+            await mockOracle.mock.latestRoundData.returns(0, 3500000000, block.timestamp, 0, 0);
+
+            let tokenParams = {
+                nTokenName: TOKEN_NAME_A, 
+                nTokenSymbol: TOKEN_SYMBOL_A, 
+                sTokenName: SHORT_TOKEN_NAME_A, 
+                sTokenSymbol: SHORT_TOKEN_SYMBOL_A, 
+            };
+        
+            let whiteListParams = {
+                oracle: mockOracle.address, 
+                auctionDiscount: DISCOUNT, 
+                minCRatio: MIN_CRATIO, 
+                targetRatio: TARGET_RATIO, 
+                isInPreIPO: false
+            }
+        
+            let trans = await adminInstance.whiteList(
+                tokenParams, 
+                1000, 
+                1000, 
+                whiteListParams,
+                {mintEnd:1000000, preIPOPrice:3000000, minCRatioAfterIPO:1500}
+            );
+        
+            await trans.wait();
+        });
+    });
 });

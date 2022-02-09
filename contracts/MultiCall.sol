@@ -9,13 +9,12 @@ import "./interface/IShortLock.sol";
 import "./interface/IShortStaking.sol";
 
 contract MultiCall is Ownable {
-
     struct PositionInfo {
         Position position;
         AssetConfig assetConfig;
         CAssetConfig cAssetConfig;
         PositionLockInfo lockInfo;
-        uint shortReward;
+        uint256 shortReward;
     }
 
     address public asset;
@@ -38,25 +37,33 @@ contract MultiCall is Ownable {
         staking = staking_;
     }
 
-    function getPositionInfo(uint positionId) external view returns(PositionInfo memory) {
-        Position memory position = IPositions(positionContract).getPosition(positionId);
-        AssetConfig memory assetConfig = IAsset(asset).asset(address(position.assetToken));
-        CAssetConfig memory cAssetConfig = IAsset(asset).cAsset(address(position.cAssetToken));
+    function getPositionInfo(uint256 positionId)
+        external
+        view
+        returns (PositionInfo memory)
+    {
+        Position memory position = IPositions(positionContract).getPosition(
+            positionId
+        );
+        AssetConfig memory assetConfig = IAsset(asset).asset(
+            address(position.assetToken)
+        );
+        CAssetConfig memory cAssetConfig = IAsset(asset).cAsset(
+            address(position.cAssetToken)
+        );
         PositionLockInfo memory lockInfo;
-        uint reward = 0;
+        uint256 reward = 0;
         if (position.isShort) {
             // assetConfig.rootPid
             lockInfo = IShortLock(lock).lockInfoMap(positionId);
-            reward = IShortStaking(staking).pendingNSDX(assetConfig.poolId, position.owner);
+            reward = IShortStaking(staking).pendingNSDX(
+                assetConfig.poolId,
+                position.owner
+            );
         }
 
-        return PositionInfo(
-            position,
-            assetConfig,
-            cAssetConfig,
-            lockInfo,
-            reward
-        );
+        return
+            PositionInfo(position, assetConfig, cAssetConfig, lockInfo, reward);
     }
 
     function setAsset(address asset_) external {

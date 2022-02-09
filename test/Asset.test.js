@@ -7,7 +7,7 @@ describe("Asset contract", function() {
     let nTokenB;
     let oracleSample;
     let assetInstance;
-    let usdtToken;
+    let usdcToken;
 
     const TOKEN_NAME_B = "Stock-B";
     const TOKEN_SYMBOL_B = "nSTB";
@@ -23,7 +23,7 @@ describe("Asset contract", function() {
 
         assetInstance = await Asset.deploy();
         nTokenB = await AssetToken.deploy(TOKEN_NAME_B, TOKEN_SYMBOL_B);
-        usdtToken = await AssetToken.deploy("TetherUSD", "USDT");
+        usdcToken = await AssetToken.deploy("USD Coin", "USDC");
         oracleSample = await OracleSample.deploy(BigNumber.from('3500000000'), 8);
         // let _asset = await ethers.getContractAt("IAsset", assetInstance.address);
     });

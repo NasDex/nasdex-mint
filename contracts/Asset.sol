@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interface/IAsset.sol";
 
 contract Asset is IAsset, Ownable {
-
     // Store registered n asset configuration information
     mapping(address => AssetConfig) private _assetsMap;
 
@@ -20,15 +19,23 @@ contract Asset is IAsset, Ownable {
     /// @param assetToken nAsset token address
     event RegisterAsset(address assetToken);
 
-    constructor() {
+    constructor() {}
 
-    }
-
-    function asset(address nToken) external override view returns(AssetConfig memory) {
+    function asset(address nToken)
+        external
+        view
+        override
+        returns (AssetConfig memory)
+    {
         return _assetsMap[nToken];
     }
 
-    function cAsset(address token) external override view returns(CAssetConfig memory) {
+    function cAsset(address token)
+        external
+        view
+        override
+        returns (CAssetConfig memory)
+    {
         return _cAssetsMap[token];
     }
 
@@ -41,37 +48,50 @@ contract Asset is IAsset, Ownable {
     /// @param poolId The index of a pool in the ShortStaking contract.
     /// @param ipoParams PreIPO params
     function registerAsset(
-        address assetToken, 
-        address assetOracle, 
-        uint16 auctionDiscount, 
-        uint16 minCRatio, 
-        uint16 targetRatio, 
-        bool isInPreIPO, 
-        uint poolId, 
+        address assetToken,
+        address assetOracle,
+        uint16 auctionDiscount,
+        uint16 minCRatio,
+        uint16 targetRatio,
+        bool isInPreIPO,
+        uint256 poolId,
         IPOParams memory ipoParams
     ) external onlyOwner {
-        require(auctionDiscount > 0 && auctionDiscount < 1000, "Auction discount is out of range.");
+        require(
+            auctionDiscount > 0 && auctionDiscount < 1000,
+            "Auction discount is out of range."
+        );
         require(minCRatio >= 1000, "C-Ratio is out of range.");
-        require(!_assetsMap[assetToken].assigned, "This asset has already been registered");
+        require(
+            !_assetsMap[assetToken].assigned,
+            "This asset has already been registered"
+        );
 
-        if(isInPreIPO) {
+        if (isInPreIPO) {
             require(ipoParams.mintEnd > block.timestamp, "wrong mintEnd");
-            require(ipoParams.preIPOPrice > 0, "The price in PreIPO couldn't be 0.");
-            require(ipoParams.minCRatioAfterIPO > 0 && ipoParams.minCRatioAfterIPO < 1000, "C-Ratio(after IPO) is out of range.");
+            require(
+                ipoParams.preIPOPrice > 0,
+                "The price in PreIPO couldn't be 0."
+            );
+            require(
+                ipoParams.minCRatioAfterIPO > 0 &&
+                    ipoParams.minCRatioAfterIPO < 1000,
+                "C-Ratio(after IPO) is out of range."
+            );
         }
 
         _assetsMap[assetToken] = AssetConfig(
-            IAssetToken(assetToken), 
-            AggregatorV3Interface(assetOracle), 
-            auctionDiscount, 
-            minCRatio, 
-            targetRatio, 
-            0, 
-            8, 
-            isInPreIPO, 
-            ipoParams, 
-            false, 
-            poolId, 
+            IAssetToken(assetToken),
+            IChainlinkAggregator(assetOracle),
+            auctionDiscount,
+            minCRatio,
+            targetRatio,
+            0,
+            8,
+            isInPreIPO,
+            ipoParams,
+            false,
+            poolId,
             true
         );
 
@@ -86,37 +106,53 @@ contract Asset is IAsset, Ownable {
     /// @param isInPreIPO is in PreIPO stage
     /// @param ipoParams PreIPO params
     function updateAsset(
-        address assetToken, 
-        address assetOracle, 
-        uint16 auctionDiscount, 
-        uint16 minCRatio, 
-        uint16 targetRatio, 
-        bool isInPreIPO, 
-        uint poolId, 
+        address assetToken,
+        address assetOracle,
+        uint16 auctionDiscount,
+        uint16 minCRatio,
+        uint16 targetRatio,
+        bool isInPreIPO,
+        uint256 poolId,
         IPOParams memory ipoParams
     ) external onlyOwner {
-        require(auctionDiscount > 0 && auctionDiscount < 1000, "Auction discount is out of range.");
+        require(
+            auctionDiscount > 0 && auctionDiscount < 1000,
+            "Auction discount is out of range."
+        );
         require(minCRatio >= 1000, "C-Ratio is out of range.");
-        require(_assetsMap[assetToken].assigned, "This asset are not registered yet.");
+        require(
+            _assetsMap[assetToken].assigned,
+            "This asset are not registered yet."
+        );
 
-        if(isInPreIPO) {
-            require(ipoParams.mintEnd > block.timestamp, "mintEnd in PreIPO needs to be greater than current time.");
-            require(ipoParams.preIPOPrice > 0, "The price in PreIPO couldn't be 0.");
-            require(ipoParams.minCRatioAfterIPO > 0 && ipoParams.minCRatioAfterIPO < 1000, "C-Ratio(after IPO) is out of range.");
+        if (isInPreIPO) {
+            require(
+                ipoParams.mintEnd > block.timestamp,
+                "mintEnd in PreIPO needs to be greater than current time."
+            );
+            require(
+                ipoParams.preIPOPrice > 0,
+                "The price in PreIPO couldn't be 0."
+            );
+            require(
+                ipoParams.minCRatioAfterIPO > 0 &&
+                    ipoParams.minCRatioAfterIPO < 1000,
+                "C-Ratio(after IPO) is out of range."
+            );
         }
 
         _assetsMap[assetToken] = AssetConfig(
-            IAssetToken(assetToken), 
-            AggregatorV3Interface(assetOracle), 
-            auctionDiscount, 
-            minCRatio, 
-            targetRatio, 
-            0, 
-            8, 
-            isInPreIPO, 
-            ipoParams, 
-            false, 
-            poolId, 
+            IAssetToken(assetToken),
+            IChainlinkAggregator(assetOracle),
+            auctionDiscount,
+            minCRatio,
+            targetRatio,
+            0,
+            8,
+            isInPreIPO,
+            ipoParams,
+            false,
+            poolId,
             true
         );
     }
@@ -125,26 +161,53 @@ contract Asset is IAsset, Ownable {
     /// @param cAssetToken Collateral Token address
     /// @param oracle oracle of collateral,if “0x0”, it's a stable coin
     /// @param multiplier collateral multiplier
-    function registerCollateral(address cAssetToken, address oracle, uint16 multiplier) external onlyOwner {
-        require(!_cAssetsMap[cAssetToken].assigned, "Collateral was already registered.");
+    function registerCollateral(
+        address cAssetToken,
+        address oracle,
+        uint16 multiplier
+    ) external onlyOwner {
+        require(
+            !_cAssetsMap[cAssetToken].assigned,
+            "Collateral was already registered."
+        );
         require(multiplier > 0, "A multiplier of collateral can not be 0.");
-        _cAssetsMap[cAssetToken] = CAssetConfig(IERC20Extented(cAssetToken), AggregatorV3Interface(oracle), multiplier, true);
+        _cAssetsMap[cAssetToken] = CAssetConfig(
+            IERC20Extented(cAssetToken),
+            IChainlinkAggregator(oracle),
+            multiplier,
+            true
+        );
     }
 
     /// @notice update collateral info, Only owner.
     /// @param cAssetToken collateral Token address
     /// @param oracle collateral oracle
     /// @param multiplier collateral multiplier
-    function updateCollateral(address cAssetToken, address oracle, uint16 multiplier) external onlyOwner {
-        require(_cAssetsMap[cAssetToken].assigned, "Collateral are not registered yet.");
+    function updateCollateral(
+        address cAssetToken,
+        address oracle,
+        uint16 multiplier
+    ) external onlyOwner {
+        require(
+            _cAssetsMap[cAssetToken].assigned,
+            "Collateral are not registered yet."
+        );
         require(multiplier > 0, "A multiplier of collateral can not be 0.");
-        _cAssetsMap[cAssetToken] = CAssetConfig(IERC20Extented(cAssetToken), AggregatorV3Interface(oracle), multiplier, true);
+        _cAssetsMap[cAssetToken] = CAssetConfig(
+            IERC20Extented(cAssetToken),
+            IChainlinkAggregator(oracle),
+            multiplier,
+            true
+        );
     }
 
     /// @notice revoke a collateral, only owner
     /// @param cAssetToken collateral address
     function revokeCollateral(address cAssetToken) external onlyOwner {
-        require(_cAssetsMap[cAssetToken].assigned, "Collateral are not registered yet.");
+        require(
+            _cAssetsMap[cAssetToken].assigned,
+            "Collateral are not registered yet."
+        );
         delete _cAssetsMap[cAssetToken];
     }
 
@@ -155,20 +218,24 @@ contract Asset is IAsset, Ownable {
         AssetConfig memory assetConfig = _assetsMap[assetToken];
         require(assetConfig.assigned, "Asset was not registered yet.");
         require(assetConfig.isInPreIPO, "Asset is not in PreIPO.");
-        
+
         require(assetConfig.ipoParams.mintEnd < block.timestamp);
 
         assetConfig.isInPreIPO = false;
         assetConfig.minCRatio = assetConfig.ipoParams.minCRatioAfterIPO;
         _assetsMap[assetToken] = assetConfig;
     }
-    
+
     /// @notice Delisting an n asset will not continue Mint after delisting.
     /// @dev 1. Set the end price. 2. Set the minimum c-ratio to 100%.
     /// @param assetToken nAsset token address
     /// @param endPrice an end price after delist
     /// @param endPriceDecimals endPrice decimals
-    function registerMigration(address assetToken, uint endPrice, uint8 endPriceDecimals) external onlyOwner {
+    function registerMigration(
+        address assetToken,
+        uint256 endPrice,
+        uint8 endPriceDecimals
+    ) external onlyOwner {
         require(_assetsMap[assetToken].assigned, "Asset not registered yet.");
         _assetsMap[assetToken].endPrice = endPrice;
         _assetsMap[assetToken].endPriceDecimals = endPriceDecimals;
@@ -179,12 +246,19 @@ contract Asset is IAsset, Ownable {
     /// @notice Set up collateral applicable to the PreIPO stage
     /// @param cAssetToken collateral token address
     /// @param value true or false
-    function setCollateralInPreIPO(address cAssetToken, bool value) external onlyOwner {
+    function setCollateralInPreIPO(address cAssetToken, bool value)
+        external
+        onlyOwner
+    {
         _isCollateralInPreIPO[cAssetToken] = value;
     }
 
-    function isCollateralInPreIPO(address cAssetToken) external view override returns(bool) {
+    function isCollateralInPreIPO(address cAssetToken)
+        external
+        view
+        override
+        returns (bool)
+    {
         return _isCollateralInPreIPO[cAssetToken];
     }
-
 }

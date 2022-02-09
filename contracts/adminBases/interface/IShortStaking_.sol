@@ -6,8 +6,15 @@ import "./IOwnable.sol";
 import "../../interface/IShortStaking.sol";
 
 interface IShortStaking_ is IShortStaking, IOwnable {
-    function add(uint256 _rootPid, IStakingToken _shortToken, bool _withUpdate) external;
+    function add(
+        uint256 _rootPid,
+        IStakingToken _shortToken,
+        bool _withUpdate
+    ) external;
+
     function setMintAddr(address _mintAddr) external;
+
     function setNsdx(address _nsdx) external;
+
     function setMasterChef(address _masterChef) external;
 }

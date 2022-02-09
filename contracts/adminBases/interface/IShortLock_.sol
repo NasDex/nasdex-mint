@@ -6,5 +6,6 @@ import "./IOwnable.sol";
 
 interface IShortLock_ is IOwnable {
     function setMintAddr(address _mintAddr) external;
-    function setLockPeriod(uint lockPeriod_) external;
+
+    function setLockPeriod(uint256 lockPeriod_) external;
 }

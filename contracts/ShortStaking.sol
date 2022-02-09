@@ -13,7 +13,7 @@ import "hardhat/console.sol";
 
 /// @title A staking contract for short token(slp).
 /// @author Iwan
-/// @notice It will mint short tokens when people 
+/// @notice It will mint short tokens when people
 /// @notice create a short position in 'Mint' contract,
 /// @notice and short tokens will be staked into this contract immediately.
 /// @dev Actually short token will be staked into 'MasterChef', and get rewards.
@@ -30,10 +30,10 @@ contract ShortStaking is Ownable, ReentrancyGuard {
 
     // @notice Info of each pool.
     struct PoolInfo {
-        IStakingToken shortToken;   // Address of short token contract.
-        uint256 lastRewardBlock;  // Last block number that NSDXs distribution occurs.
+        IStakingToken shortToken; // Address of short token contract.
+        uint256 lastRewardBlock; // Last block number that NSDXs distribution occurs.
         uint256 accNSDXPerShare; // Accumulated NSDXs per share, times 1e12. See below.
-        uint256 rootPid;            // pid in the MasterChef.
+        uint256 rootPid; // pid in the MasterChef.
     }
 
     /// @notice The NSDX TOKEN!
@@ -49,7 +49,7 @@ contract ShortStaking is Ownable, ReentrancyGuard {
     PoolInfo[] public poolInfo;
 
     /// @dev Info of each user that stakes LP tokens.
-    mapping (uint256 => mapping (address => UserInfo)) public userInfo;
+    mapping(uint256 => mapping(address => UserInfo)) public userInfo;
 
     /// @notice The block number when NSDX mining starts.
     uint256 public startBlock;
@@ -81,20 +81,29 @@ contract ShortStaking is Ownable, ReentrancyGuard {
         return poolInfo.length;
     }
 
-    /// @notice Add a new short lp to the pool. 
+    /// @notice Add a new short lp to the pool.
     /// @dev Can only be called by the owner.
     /// @dev DO NOT add the same LP token more than once. Rewards will be messed up if you do.
     /// @param _rootPid The pid in MasterChef.
     /// @param _shortToken The contract address of the short token.
     /// @param _withUpdate It will execute update() for each pools if we set a 'true'.
-    function add(uint256 _rootPid, IStakingToken _shortToken, bool _withUpdate) public onlyOwner {
-        require(_shortToken.owner() == address(this), "add: the owner of short token must be this.");
-        
+    function add(
+        uint256 _rootPid,
+        IStakingToken _shortToken,
+        bool _withUpdate
+    ) public onlyOwner {
+        require(
+            _shortToken.owner() == address(this),
+            "add: the owner of short token must be this."
+        );
+
         if (_withUpdate) {
             massUpdatePools();
         }
         _shortToken.approve(address(masterChef), MAX_UINT256);
-        uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
+        uint256 lastRewardBlock = block.number > startBlock
+            ? block.number
+            : startBlock;
         poolInfo.push(PoolInfo(_shortToken, lastRewardBlock, 0, _rootPid));
 
         emit NewPool(poolInfo.length - 1);
@@ -111,7 +120,7 @@ contract ShortStaking is Ownable, ReentrancyGuard {
     /// @notice Update reward variables of the given pool to be up-to-date.
     /// @param _pid The index of the pool.
     /// @return pool Returns the pool that was updated
-    function updatePool(uint256 _pid) public returns (PoolInfo memory pool){
+    function updatePool(uint256 _pid) public returns (PoolInfo memory pool) {
         pool = poolInfo[_pid];
         if (block.number > pool.lastRewardBlock) {
             uint256 lpSupply = pool.shortToken.totalSupply();
@@ -119,8 +128,13 @@ contract ShortStaking is Ownable, ReentrancyGuard {
                 // uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
                 // uint256 nsdxReward = multiplier.mul(nsdxPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
                 // nsdxReward = safeNSDXMint(address(bar), nsdxReward);
-                uint256 nsdxReward = masterChef.pendingNSDX(pool.rootPid, address(this));
-                pool.accNSDXPerShare = pool.accNSDXPerShare.add(nsdxReward.mul(1e12).div(lpSupply));
+                uint256 nsdxReward = masterChef.pendingNSDX(
+                    pool.rootPid,
+                    address(this)
+                );
+                pool.accNSDXPerShare = pool.accNSDXPerShare.add(
+                    nsdxReward.mul(1e12).div(lpSupply)
+                );
             }
             pool.lastRewardBlock = block.number;
             poolInfo[_pid] = pool;
@@ -132,15 +146,24 @@ contract ShortStaking is Ownable, ReentrancyGuard {
     /// @param _pid Index of the pool.
     /// @param _user User's address.
     /// @return The pending NSDXs.
-    function pendingNSDX(uint256 _pid, address _user) external view returns (uint256) {
+    function pendingNSDX(uint256 _pid, address _user)
+        external
+        view
+        returns (uint256)
+    {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
         uint256 accNSDXPerShare = pool.accNSDXPerShare;
         uint256 lpSupply = pool.shortToken.totalSupply();
         if (block.number > pool.lastRewardBlock && lpSupply != 0) {
             // uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-            uint256 nsdxReward = masterChef.pendingNSDX(pool.rootPid, address(this));
-            accNSDXPerShare = accNSDXPerShare.add(nsdxReward.mul(1e12).div(lpSupply));
+            uint256 nsdxReward = masterChef.pendingNSDX(
+                pool.rootPid,
+                address(this)
+            );
+            accNSDXPerShare = accNSDXPerShare.add(
+                nsdxReward.mul(1e12).div(lpSupply)
+            );
         }
         return user.amount.mul(accNSDXPerShare).div(1e12).sub(user.rewardDebt);
     }
@@ -151,9 +174,16 @@ contract ShortStaking is Ownable, ReentrancyGuard {
     /// @param _pid The index of the pool.
     /// @param _amount Short token amount to deposit.
     /// @param _realUser The address of real user.
-    function deposit(uint256 _pid, uint256 _amount, address _realUser) external onlyMint nonReentrant {
+    function deposit(
+        uint256 _pid,
+        uint256 _amount,
+        address _realUser
+    ) external onlyMint nonReentrant {
         require(_amount > 0, "deposit: amount must greater than zero.");
-        require(_realUser != address(0), "deposit: cannot point to a zero address.");
+        require(
+            _realUser != address(0),
+            "deposit: cannot point to a zero address."
+        );
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_realUser];
         updatePool(_pid);
@@ -176,7 +206,11 @@ contract ShortStaking is Ownable, ReentrancyGuard {
     /// @param _pid The index of the pool.
     /// @param _amount Short token amount to withdraw.
     /// @param _realUser The address of real user.
-    function withdraw(uint256 _pid, uint256 _amount, address _realUser) external onlyMint nonReentrant {
+    function withdraw(
+        uint256 _pid,
+        uint256 _amount,
+        address _realUser
+    ) external onlyMint nonReentrant {
         _withdraw(_pid, _amount, _realUser);
     }
 
@@ -187,8 +221,15 @@ contract ShortStaking is Ownable, ReentrancyGuard {
         _withdraw(_pid, 0, msg.sender);
     }
 
-    function _withdraw(uint256 _pid, uint256 _amount, address _realUser) private {
-        require(_realUser != address(0), "_withdraw: cannot point to a zero address.");
+    function _withdraw(
+        uint256 _pid,
+        uint256 _amount,
+        address _realUser
+    ) private {
+        require(
+            _realUser != address(0),
+            "_withdraw: cannot point to a zero address."
+        );
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_realUser];
         require(user.amount >= _amount, "_withdraw: not good");
@@ -200,7 +241,7 @@ contract ShortStaking is Ownable, ReentrancyGuard {
             _getReward(pool, user, _realUser);
         }
 
-        if(_amount > 0) {
+        if (_amount > 0) {
             user.amount = user.amount.sub(_amount);
             pool.shortToken.burn(_amount);
         }
@@ -217,11 +258,17 @@ contract ShortStaking is Ownable, ReentrancyGuard {
         masterChef.withdraw(_pool.rootPid, _amount);
     }
 
-    function _getReward(PoolInfo memory _pool, UserInfo memory _user, address _account) private {
-        uint256 pending = _user.amount.mul(_pool.accNSDXPerShare).div(1e12).sub(_user.rewardDebt);
-        if(pending > 0) {
-            uint sendAmount = nsdx.balanceOf(address(this));
-            if(sendAmount > pending) {
+    function _getReward(
+        PoolInfo memory _pool,
+        UserInfo memory _user,
+        address _account
+    ) private {
+        uint256 pending = _user.amount.mul(_pool.accNSDXPerShare).div(1e12).sub(
+            _user.rewardDebt
+        );
+        if (pending > 0) {
+            uint256 sendAmount = nsdx.balanceOf(address(this));
+            if (sendAmount > pending) {
                 sendAmount = pending;
             }
             nsdx.safeTransfer(_account, sendAmount);
@@ -229,7 +276,10 @@ contract ShortStaking is Ownable, ReentrancyGuard {
     }
 
     function setMintAddr(address _mintAddr) external onlyOwner {
-        require(_mintAddr != address(0), "ShortStaking: cannot set a zero address.");
+        require(
+            _mintAddr != address(0),
+            "ShortStaking: cannot set a zero address."
+        );
         mintAddr = _mintAddr;
     }
 
@@ -243,7 +293,10 @@ contract ShortStaking is Ownable, ReentrancyGuard {
 
     /// @dev Only Mint contract can execute.
     modifier onlyMint() {
-        require(mintAddr == _msgSender(), "ShortStaking: caller is not the 'Mint' contract.");
+        require(
+            mintAddr == _msgSender(),
+            "ShortStaking: caller is not the 'Mint' contract."
+        );
         _;
     }
 }

@@ -7,7 +7,7 @@ describe("ShortLock contract", function() {
     let owner;
     let addr1;
     let shortLock;
-    let usdtToken;
+    let usdcToken;
 
     before(async function() {
         const ShortLock = await ethers.getContractFactory("ShortLock");
@@ -20,10 +20,10 @@ describe("ShortLock contract", function() {
             BigNumber.from('10000000')
         );
 
-        usdtToken = await AssetToken.deploy("TetherUSD", "USDT");
-        await usdtToken.mint(addr1.address, BigNumber.from('1000000000000000000000000'));
-        let myBalance = await usdtToken.balanceOf(addr1.address);
-        await usdtToken.connect(addr1).approve(shortLock.address, myBalance);
+        usdcToken = await AssetToken.deploy("USD Coin", "USDC");
+        await usdcToken.mint(addr1.address, BigNumber.from('1000000000000000000000000'));
+        let myBalance = await usdcToken.balanceOf(addr1.address);
+        await usdcToken.connect(addr1).approve(shortLock.address, myBalance);
     });
 
     beforeEach(async function() {
@@ -57,17 +57,17 @@ describe("ShortLock contract", function() {
                 await shortLock.connect(addr1).lock(
                     0, 
                     owner.address,
-                    usdtToken.address,
+                    usdcToken.address,
                     BigNumber.from("32100000000000000000") // 321
                 )
             )
             .to
-            .emit(usdtToken, "Transfer")
+            .emit(usdcToken, "Transfer")
             .withArgs(addr1.address, shortLock.address, BigNumber.from("32100000000000000000"));
         });
 
         it("Should change token balance", async function() {
-            expect(await usdtToken.balanceOf(shortLock.address))
+            expect(await usdcToken.balanceOf(shortLock.address))
             .to
             .equal(BigNumber.from("32100000000000000000"));
         });

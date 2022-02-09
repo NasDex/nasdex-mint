@@ -5,7 +5,6 @@ pragma solidity ^0.8.2;
 import "./interface/IShortLock_.sol";
 
 abstract contract ShortLockAdmin {
-
     // short lock
     address public shortLock;
 
@@ -18,7 +17,7 @@ abstract contract ShortLockAdmin {
         IShortLock_(shortLock).setMintAddr(_mintAddr);
     }
 
-    function shortLock_setLockPeriod(uint lockPeriod_) external onlyOwner {
+    function shortLock_setLockPeriod(uint256 lockPeriod_) external onlyOwner {
         IShortLock_(shortLock).setLockPeriod(lockPeriod_);
     }
 

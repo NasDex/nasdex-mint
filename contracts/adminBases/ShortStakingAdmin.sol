@@ -5,7 +5,6 @@ pragma solidity ^0.8.2;
 import "./interface/IShortStaking_.sol";
 
 abstract contract ShortStakingAdmin {
-
     // staking
     address public shortStaking;
 
@@ -14,8 +13,16 @@ abstract contract ShortStakingAdmin {
         shortStaking = staking_;
     }
 
-    function shortStaking_add(uint256 _rootPid, address _shortToken, bool _withUpdate) public onlyOwner {
-        IShortStaking_(shortStaking).add(_rootPid, IStakingToken(_shortToken), _withUpdate);
+    function shortStaking_add(
+        uint256 _rootPid,
+        address _shortToken,
+        bool _withUpdate
+    ) public onlyOwner {
+        IShortStaking_(shortStaking).add(
+            _rootPid,
+            IStakingToken(_shortToken),
+            _withUpdate
+        );
     }
 
     function shortStaking_setMintAddr(address _mintAddr) external onlyOwner {
@@ -26,7 +33,10 @@ abstract contract ShortStakingAdmin {
         IShortStaking_(shortStaking).setNsdx(_nsdx);
     }
 
-    function shortStaking_setMasterChef(address _masterChef) external onlyOwner {
+    function shortStaking_setMasterChef(address _masterChef)
+        external
+        onlyOwner
+    {
         IShortStaking_(shortStaking).setMasterChef(_masterChef);
     }
 

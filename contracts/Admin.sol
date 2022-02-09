@@ -15,13 +15,27 @@ import "./adminBases/AssetAdmin.sol";
 import "./adminBases/MintAdmin.sol";
 import "./adminBases/MasterChefAdmin.sol";
 
-contract Admin is ShortStakingAdmin, LongStakingAdmin, ShortLockAdmin, AssetAdmin, MintAdmin, MasterChefAdmin {
+contract Admin is
+    ShortStakingAdmin,
+    LongStakingAdmin,
+    ShortLockAdmin,
+    AssetAdmin,
+    MintAdmin,
+    MasterChefAdmin
+{
+    struct AssetMember {
+        address nToken;
+        address sToken;
+        address pair;
+    }
+
+    AssetMember[] public assetList;
+    uint256 public assetCount;
 
     address public owner;
-    
+
     // factory
     address public factory;
-    
 
     // IAssetToken
     // IStakingToken
@@ -32,28 +46,29 @@ contract Admin is ShortStakingAdmin, LongStakingAdmin, ShortLockAdmin, AssetAdmi
         address shortLock_,
         address asset_,
         address mint_,
-        address masterChef_, 
+        address masterChef_,
         address factory_
-    ) 
-    ShortStakingAdmin(shortStaking_)
-    LongStakingAdmin(longStaking_)
-    ShortLockAdmin(shortLock_)
-    AssetAdmin(asset_)
-    MintAdmin(mint_)
-    MasterChefAdmin(masterChef_) {
-        
+    )
+        ShortStakingAdmin(shortStaking_)
+        LongStakingAdmin(longStaking_)
+        ShortLockAdmin(shortLock_)
+        AssetAdmin(asset_)
+        MintAdmin(mint_)
+        MasterChefAdmin(masterChef_)
+    {
         factory = factory_;
         owner = msg.sender;
     }
 
-    modifier onlyOwner() override(
-        ShortStakingAdmin, 
-        LongStakingAdmin, 
-        ShortLockAdmin, 
-        AssetAdmin, 
-        MintAdmin, 
-        MasterChefAdmin
-    ) {
+    modifier onlyOwner()
+        override(
+            ShortStakingAdmin,
+            LongStakingAdmin,
+            ShortLockAdmin,
+            AssetAdmin,
+            MintAdmin,
+            MasterChefAdmin
+        ) {
         require(owner == msg.sender, "Admin: caller is not the owner");
         _;
     }
@@ -78,8 +93,6 @@ contract Admin is ShortStakingAdmin, LongStakingAdmin, ShortLockAdmin, AssetAdmi
         string nTokenSymbol;
         string sTokenName;
         string sTokenSymbol;
-        string lTokenName;
-        string lTokenSymbol;
     }
 
     struct WhiteListParams {
@@ -91,31 +104,37 @@ contract Admin is ShortStakingAdmin, LongStakingAdmin, ShortLockAdmin, AssetAdmi
     }
 
     function whiteList(
-        WhiteListTokenParams memory tokenParams, 
-        uint sAllocPoint_,
-        uint lAllocPoint_,
-        WhiteListParams memory whiteListParams, 
+        WhiteListTokenParams memory tokenParams,
+        uint256 sAllocPoint_,
+        uint256 lAllocPoint_,
+        WhiteListParams memory whiteListParams,
         IPOParams memory ipoParams
     ) external onlyOwner {
-        AssetToken nToken = new AssetToken(tokenParams.nTokenName, tokenParams.nTokenSymbol);
+        AssetToken nToken = new AssetToken(
+            tokenParams.nTokenName,
+            tokenParams.nTokenSymbol
+        );
         nToken.transferOwnership(mint);
 
-        StakingToken sToken = new StakingToken(tokenParams.sTokenName, tokenParams.sTokenSymbol);
+        StakingToken sToken = new StakingToken(
+            tokenParams.sTokenName,
+            tokenParams.sTokenSymbol
+        );
         sToken.transferOwnership(shortStaking);
-
-        StakingToken lToken = new StakingToken(tokenParams.lTokenName, tokenParams.lTokenSymbol);
-        lToken.transferOwnership(longStaking);
 
         address swapToToken = IMint_(mint).swapToToken();
 
-        address pair = IUniswapV2Factory(factory).createPair(address(nToken), swapToToken);
+        address pair = IUniswapV2Factory(factory).createPair(
+            address(nToken),
+            swapToToken
+        );
 
         // add a long farm pool in MasterChef
-        masterChef_add(lAllocPoint_, IERC20(lToken), false);
-        uint rootPoolId = IMasterChef(masterChef).poolLength() - 1;
+        masterChef_add(lAllocPoint_, IERC20(pair), false);
+        uint256 rootPoolId = IMasterChef(masterChef).poolLength() - 1;
 
         // add a pool in LongStaking
-        longStaking_add(rootPoolId, address(lToken), pair, false);
+        longStaking_add(rootPoolId, false);
 
         // add a short farm pool in MasterChef
         masterChef_add(sAllocPoint_, IERC20(sToken), false);
@@ -123,19 +142,28 @@ contract Admin is ShortStakingAdmin, LongStakingAdmin, ShortLockAdmin, AssetAdmi
 
         // add a pool in ShortStaking
         shortStaking_add(rootPoolId, address(sToken), false);
-        uint poolId = IShortStaking(shortStaking).poolLength() - 1;
+        uint256 poolId = IShortStaking(shortStaking).poolLength() - 1;
 
         // Register nAsset in Asset
         asset_registerAsset(
-            address(nToken), 
-            address(whiteListParams.oracle), 
-            whiteListParams.auctionDiscount, 
-            whiteListParams.minCRatio, 
-            whiteListParams.targetRatio, 
-            whiteListParams.isInPreIPO, 
-            poolId, 
+            address(nToken),
+            address(whiteListParams.oracle),
+            whiteListParams.auctionDiscount,
+            whiteListParams.minCRatio,
+            whiteListParams.targetRatio,
+            whiteListParams.isInPreIPO,
+            poolId,
             ipoParams
         );
+
+        AssetMember memory member = AssetMember(
+            address(nToken),
+            address(sToken),
+            pair
+        );
+
+        assetList.push(member);
+        assetCount += 1;
     }
 
     function setFactory(address factory_) external onlyOwner {

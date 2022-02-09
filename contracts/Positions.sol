@@ -10,20 +10,20 @@ contract Positions is IPositions, Ownable {
     using Counters for Counters.Counter;
 
     // positionId => Position
-    mapping(uint => Position) private _positionsMap;
+    mapping(uint256 => Position) private _positionsMap;
 
     // user address => position[]
-    mapping(address => uint[]) private _positionIdsFromUser;
+    mapping(address => uint256[]) private _positionIdsFromUser;
 
     Counters.Counter private _positionIdCounter;
 
     /// @notice Triggered when open a new position.
     /// @param positionId The index of this position.
-    event OpenPosition(uint positionId);
+    event OpenPosition(uint256 positionId);
 
     /// @notice Triggered when a position be closed.
     /// @param positionId The index of this position.
-    event ClosePosition(uint positionId);
+    event ClosePosition(uint256 positionId);
 
     constructor() {
         // Start at 1.
@@ -42,14 +42,23 @@ contract Positions is IPositions, Ownable {
     function openPosition(
         address owner,
         IERC20Extented cAssetToken,
-        uint cAssetAmount,
+        uint256 cAssetAmount,
         IAssetToken assetToken,
-        uint assetAmount,
+        uint256 assetAmount,
         bool isShort
-    ) external override onlyOwner returns(uint positionId) {
+    ) external override onlyOwner returns (uint256 positionId) {
         positionId = _positionIdCounter.current();
         _positionIdCounter.increment();
-        _positionsMap[positionId] = Position(positionId, owner, cAssetToken, cAssetAmount, assetToken, assetAmount, isShort, true);
+        _positionsMap[positionId] = Position(
+            positionId,
+            owner,
+            cAssetToken,
+            cAssetAmount,
+            assetToken,
+            assetAmount,
+            isShort,
+            true
+        );
         _positionIdsFromUser[owner].push(positionId);
         emit OpenPosition(positionId);
     }
@@ -57,14 +66,18 @@ contract Positions is IPositions, Ownable {
     /// @notice Update the position.
     /// @dev Only owner. The owner may always be Mint contract.
     /// @param position_ The position which is going to be update.
-    function updatePosition(Position memory position_) external override onlyOwner {
+    function updatePosition(Position memory position_)
+        external
+        override
+        onlyOwner
+    {
         _positionsMap[position_.id] = position_;
     }
 
     /// @notice Delete the position.
     /// @dev Only owner. The owner may always be Mint contract.
     /// @param positionId Position's index.
-    function removePosition(uint positionId) external override onlyOwner {
+    function removePosition(uint256 positionId) external override onlyOwner {
         delete _positionsMap[positionId];
         emit ClosePosition(positionId);
     }
@@ -72,13 +85,18 @@ contract Positions is IPositions, Ownable {
     /// @notice Get position by id
     /// @param positionId position id
     /// @return position
-    function getPosition(uint positionId) external override view returns(Position memory) {
+    function getPosition(uint256 positionId)
+        external
+        view
+        override
+        returns (Position memory)
+    {
         return _positionsMap[positionId];
     }
 
     /// @notice get the next id
     /// @return current positionId + 1
-    function getNextPositionId() external override view returns(uint) {
+    function getNextPositionId() external view override returns (uint256) {
         return _positionIdCounter.current();
     }
 
@@ -87,19 +105,23 @@ contract Positions is IPositions, Ownable {
     /// @param startAt it's a position id, returning positions will greater than it.
     /// @param limit how many positions do you want
     /// @return Position[]
-    function getPositions(address ownerAddr, uint startAt, uint limit) external override view returns(Position[] memory) {
-        uint[] memory arr = _positionIdsFromUser[ownerAddr];
+    function getPositions(
+        address ownerAddr,
+        uint256 startAt,
+        uint256 limit
+    ) external view override returns (Position[] memory) {
+        uint256[] memory arr = _positionIdsFromUser[ownerAddr];
         Position[] memory positions = new Position[](min(limit, arr.length));
-        uint index = 0;
-        for (uint i = 0; i < arr.length; i++) {
-            if(arr[i] < startAt) {
+        uint256 index = 0;
+        for (uint256 i = 0; i < arr.length; i++) {
+            if (arr[i] < startAt) {
                 continue;
             }
-            if(index >= limit) {
+            if (index >= limit) {
                 break;
             }
             Position memory position = _positionsMap[arr[i]];
-            if(position.assigned) {
+            if (position.assigned) {
                 positions[index] = position;
                 index += 1;
             }

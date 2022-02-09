@@ -5,7 +5,6 @@ pragma solidity ^0.8.2;
 import "./interface/IMint_.sol";
 
 abstract contract MintAdmin {
-
     // mint
     address public mint;
 
@@ -17,22 +16,24 @@ abstract contract MintAdmin {
     function mint_updateState(
         address asset_,
         address positions_,
-        uint oracleMaxDelay_,
+        uint256 oracleMaxDelay_,
         address swapToToken_,
         uint16 feeRate_,
         address lock_,
         address staking_,
-        address swapRouter_
+        address swapRouter_,
+        address feeTo_
     ) external onlyOwner {
         IMint_(mint).updateState(
-            asset_, 
-            positions_, 
-            oracleMaxDelay_, 
-            swapToToken_, 
-            feeRate_, 
-            lock_, 
-            staking_, 
-            swapRouter_
+            asset_,
+            positions_,
+            oracleMaxDelay_,
+            swapToToken_,
+            feeRate_,
+            lock_,
+            staking_,
+            swapRouter_,
+            feeTo_
         );
     }
 

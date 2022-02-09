@@ -5,7 +5,6 @@ pragma solidity ^0.8.2;
 import "./interface/ILongStaking_.sol";
 
 abstract contract LongStakingAdmin {
-
     // staking
     address public longStaking;
 
@@ -14,8 +13,11 @@ abstract contract LongStakingAdmin {
         longStaking = staking_;
     }
 
-    function longStaking_add(uint256 _rootPid, address _longToken, address _lpToken, bool _withUpdate) public onlyOwner {
-        ILongStaking_(longStaking).add(_rootPid, IStakingToken(_longToken), IUniswapPair(_lpToken), _withUpdate);
+    function longStaking_add(uint256 _rootPid, bool _withUpdate)
+        public
+        onlyOwner
+    {
+        ILongStaking_(longStaking).add(_rootPid, _withUpdate);
     }
 
     function longStaking_setMintAddr(address _mintAddr) external onlyOwner {

@@ -3,7 +3,7 @@ const { expect } = require("chai");
 const env = require("hardhat");
 const { ethers } = require("hardhat");
 
-const SWAP_FACTORY = "0x60065e6B6d53aAd28C381FD9a4aa2ec839852e91";
+const SWAP_FACTORY = "0xa07dD2e9fa20C14C45A28978041b4c64e45f7f97";
 
 async function main() {
     [deployer] = await ethers.getSigners();
@@ -11,7 +11,7 @@ async function main() {
         "Deploying contracts with the account:",
         deployer.address
     );
-    
+
     console.log("Account balance:", (await deployer.getBalance()).toString());
 
     const Admin = await ethers.getContractFactory("Admin");
@@ -25,7 +25,11 @@ async function main() {
         SWAP_FACTORY
     );
 
-    console.log("Admin address: " + adminInstance.address);
+    console.log("Admin address1: " + adminInstance.address);
+    console.log("deploy transaction: " + adminInstance.deployTransaction.hash);
+    console.log("deploy nonce: " + adminInstance.deployTransaction.nonce);
+
+    await adminInstance.deployTransaction.wait();
 }
 
 main().then(() => process.exit(0)).catch(error => {

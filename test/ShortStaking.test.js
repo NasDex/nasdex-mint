@@ -61,7 +61,7 @@ describe("ShortStaking cntract", function() {
             await ethers.provider.send("evm_mine", []);
         }
         let block = await ethers.provider.getBlockNumber();
-        console.log("current block is " + block);
+        // console.log("current block is " + block);
     });
 
     describe("Ownership", function() {

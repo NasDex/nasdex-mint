@@ -9,11 +9,12 @@
     "test": "npx hardhat test",
     "deploy": "npx hardhat run scripts/deploy.js",
     "deployAdmin": "npx hardhat run scripts/deployAdmin.js",
-    "deploy-polygon": "npx hardhat run scripts/deploy.js --network polygon",
+    "deploy-polygon": "npx hardhat run scripts/deploy.js --network matic",
     "deploy-mumbai": "npx hardhat run scripts/deploy.js --network mumbai",
     "deployAdmin-mumbai": "npx hardhat run scripts/deployAdmin.js --network mumbai",
-    "whitelist-mumbai": "npx hardhat run scripts/whitelist.js --network mumbai", 
-    "add collateral-mumbai": "npx hardhat run scripts/addCollateral.js --network mumbai", 
+    "deployAdmin-bsctest": "npx hardhat run scripts/deployAdmin.js --network bsctest",
+    "whitelist-mumbai": "npx hardhat run scripts/whitelist.js --network mumbai",
+    "add collateral-mumbai": "npx hardhat run scripts/addCollateral.js --network mumbai",
     "init liquidity": "npx hardhat run scripts/initLiquidity.js --network mumbai",
     "verify-mumbai": "npx hardhat --network mumbai etherscan-verify --solc-input"
   },
@@ -33,13 +34,15 @@
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.5.1",
     "hardhat": "^2.6.5",
-    "hardhat-deploy": "^0.9.6"
+    "hardhat-deploy": "^0.9.6",
+    "hardhat-deploy-ethers": "^0.3.0-beta.10"
   },
   "dependencies": {
     "@chainlink/contracts": "^0.2.2",
     "@openzeppelin/contracts": "^4.3.2",
     "@uniswap/v2-core": "^1.0.1",
     "@uniswap/v2-periphery": "^1.1.0-beta.0",
-    "hardhat-contract-sizer": "^2.1.1"
+    "hardhat-contract-sizer": "^2.1.1",
+    "readline-sync": "^1.4.10"
   }
 }

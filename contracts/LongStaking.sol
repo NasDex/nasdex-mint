@@ -8,11 +8,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 import "./interface/IMasterChef.sol";
-import "./interface/IStakingToken.sol";
+// import "./interface/IStakingToken.sol";
 import "./interface/IUniswapV2Router.sol";
 import "./interface/IUniswapPair.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 contract LongStaking is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
@@ -28,11 +28,12 @@ contract LongStaking is Ownable, ReentrancyGuard {
 
     // @notice Info of each pool.
     struct PoolInfo {
-        IStakingToken longToken;   // Address of long token contract.
+        // IStakingToken longToken;   // Address of long token contract.
+        uint256 totalDeposit;
         IUniswapPair lpToken;
-        uint256 lastRewardBlock;  // Last block number that NSDXs distribution occurs.
+        uint256 lastRewardBlock; // Last block number that NSDXs distribution occurs.
         uint256 accNSDXPerShare; // Accumulated NSDXs per share, times 1e12. See below.
-        uint256 rootPid;            // pid in the MasterChef.
+        uint256 rootPid; // pid in the MasterChef.
     }
 
     /// @notice The NSDX TOKEN!
@@ -47,7 +48,7 @@ contract LongStaking is Ownable, ReentrancyGuard {
     IUniswapV2Router public swapRouter;
 
     /// @dev Info of each user that stakes LP tokens.
-    mapping (uint256 => mapping (address => UserInfo)) public userInfo;
+    mapping(uint256 => mapping(address => UserInfo)) public userInfo;
 
     /// @notice The block number when NSDX mining starts.
     uint256 public startBlock;
@@ -79,26 +80,28 @@ contract LongStaking is Ownable, ReentrancyGuard {
         return poolInfo.length;
     }
 
-    /// @notice Add a new long lp to the pool. 
+    /// @notice Add a new long lp to the pool.
     /// @dev Can only be called by the owner.
     /// @dev DO NOT add the same LP token more than once. Rewards will be messed up if you do.
     /// @param _rootPid The pid in MasterChef.
-    /// @param _longToken The contract address of the long token.
     /// @param _withUpdate It will execute update() for each pools if we set a 'true'.
-    function add(uint256 _rootPid, IStakingToken _longToken, IUniswapPair _lpToken, bool _withUpdate) public onlyOwner {
-        require(_longToken.owner() == address(this), "add: the owner of long token must be this.");
-        
+    function add(uint256 _rootPid, bool _withUpdate) public onlyOwner {
         if (_withUpdate) {
             massUpdatePools();
         }
+        IMasterChef.PoolInfo memory rootPool = masterChef.poolInfo(_rootPid);
+
+        IUniswapPair _lpToken = IUniswapPair(address(rootPool.lpToken));
         IERC20 tokenA = IERC20(_lpToken.token0());
         IERC20 tokenB = IERC20(_lpToken.token1());
         tokenA.approve(address(swapRouter), MAX_UINT256);
         tokenB.approve(address(swapRouter), MAX_UINT256);
         _lpToken.approve(address(swapRouter), MAX_UINT256);
-        _longToken.approve(address(masterChef), MAX_UINT256);
-        uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
-        poolInfo.push(PoolInfo(_longToken, _lpToken, lastRewardBlock, 0, _rootPid));
+        _lpToken.approve(address(masterChef), MAX_UINT256);
+        uint256 lastRewardBlock = block.number > startBlock
+            ? block.number
+            : startBlock;
+        poolInfo.push(PoolInfo(0, _lpToken, lastRewardBlock, 0, _rootPid));
 
         emit NewPool(poolInfo.length - 1);
     }
@@ -114,16 +117,21 @@ contract LongStaking is Ownable, ReentrancyGuard {
     /// @notice Update reward variables of the given pool to be up-to-date.
     /// @param _pid The index of the pool.
     /// @return pool Returns the pool that was updated
-    function updatePool(uint256 _pid) public returns (PoolInfo memory pool){
+    function updatePool(uint256 _pid) public returns (PoolInfo memory pool) {
         pool = poolInfo[_pid];
         if (block.number > pool.lastRewardBlock) {
-            uint256 lpSupply = pool.longToken.totalSupply();
+            uint256 lpSupply = pool.totalDeposit;
             if (lpSupply > 0) {
                 // uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
                 // uint256 nsdxReward = multiplier.mul(nsdxPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
                 // nsdxReward = safeNSDXMint(address(bar), nsdxReward);
-                uint256 nsdxReward = masterChef.pendingNSDX(pool.rootPid, address(this));
-                pool.accNSDXPerShare = pool.accNSDXPerShare.add(nsdxReward.mul(1e12).div(lpSupply));
+                uint256 nsdxReward = masterChef.pendingNSDX(
+                    pool.rootPid,
+                    address(this)
+                );
+                pool.accNSDXPerShare = pool.accNSDXPerShare.add(
+                    nsdxReward.mul(1e12).div(lpSupply)
+                );
             }
             pool.lastRewardBlock = block.number;
             poolInfo[_pid] = pool;
@@ -135,25 +143,34 @@ contract LongStaking is Ownable, ReentrancyGuard {
     /// @param _pid Index of the pool.
     /// @param _user User's address.
     /// @return The pending NSDXs.
-    function pendingNSDX(uint256 _pid, address _user) external view returns (uint256) {
+    function pendingNSDX(uint256 _pid, address _user)
+        external
+        view
+        returns (uint256)
+    {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
         uint256 accNSDXPerShare = pool.accNSDXPerShare;
-        uint256 lpSupply = pool.longToken.totalSupply();
+        uint256 lpSupply = pool.totalDeposit;
         if (block.number > pool.lastRewardBlock && lpSupply != 0) {
             // uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-            uint256 nsdxReward = masterChef.pendingNSDX(pool.rootPid, address(this));
-            accNSDXPerShare = accNSDXPerShare.add(nsdxReward.mul(1e12).div(lpSupply));
+            uint256 nsdxReward = masterChef.pendingNSDX(
+                pool.rootPid,
+                address(this)
+            );
+            accNSDXPerShare = accNSDXPerShare.add(
+                nsdxReward.mul(1e12).div(lpSupply)
+            );
         }
         return user.amount.mul(accNSDXPerShare).div(1e12).sub(user.rewardDebt);
     }
 
     function deposit(
-        uint256 _pid, 
-        uint256 _amountA, 
+        uint256 _pid,
+        uint256 _amountA,
         uint256 _amountB,
-        uint256 _amountAMin, 
-        uint256 _amountBMin, 
+        uint256 _amountAMin,
+        uint256 _amountBMin,
         uint256 _deadline
     ) external {
         require(_amountA > 0, "deposit: amountA must greater than zero.");
@@ -167,18 +184,18 @@ contract LongStaking is Ownable, ReentrancyGuard {
         uint256 amountB;
         uint256 lpAmount;
         (amountA, amountB, lpAmount) = _addLiquidity(
-            tokenA, 
-            tokenB, 
-            _amountA, 
-            _amountB, 
-            _amountAMin, 
-            _amountBMin, 
+            tokenA,
+            tokenB,
+            _amountA,
+            _amountB,
+            _amountAMin,
+            _amountBMin,
             _deadline
         );
-        if(_amountA > amountA) {
+        if (_amountA > amountA) {
             tokenA.safeTransfer(msg.sender, _amountA - amountA);
         }
-        if(_amountB > amountB) {
+        if (_amountB > amountB) {
             tokenB.safeTransfer(msg.sender, _amountB - amountB);
         }
         deposit(_pid, lpAmount, msg.sender);
@@ -187,7 +204,11 @@ contract LongStaking is Ownable, ReentrancyGuard {
     function depositLP(uint256 _pid, uint256 _amount) external {
         require(_amount > 0, "deposit: amount must greater than zero.");
         PoolInfo storage pool = poolInfo[_pid];
-        pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
+        pool.lpToken.safeTransferFrom(
+            address(msg.sender),
+            address(this),
+            _amount
+        );
 
         deposit(_pid, _amount, msg.sender);
     }
@@ -198,14 +219,22 @@ contract LongStaking is Ownable, ReentrancyGuard {
     /// @param _pid The index of the pool.
     /// @param _amount Long token amount to deposit.
     /// @param _realUser The address of real user.
-    function deposit(uint256 _pid, uint256 _amount, address _realUser) internal nonReentrant {
-        require(_realUser != address(0), "deposit: cannot point to a zero address.");
+    function deposit(
+        uint256 _pid,
+        uint256 _amount,
+        address _realUser
+    ) internal nonReentrant {
+        require(
+            _realUser != address(0),
+            "deposit: cannot point to a zero address."
+        );
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_realUser];
         updatePool(_pid);
 
         // Deposit to masterChef.
-        _masterDeposit(pool, _amount);
+        pool.totalDeposit = pool.totalDeposit.add(_amount);
+        masterChef.deposit(pool.rootPid, _amount);
 
         if (user.amount > 0) {
             _getReward(pool, user, _realUser);
@@ -224,36 +253,25 @@ contract LongStaking is Ownable, ReentrancyGuard {
     /// @param _amountAMin minimum of tokenA amount that you expect when remove liquidity.
     /// @param _deadline The latest execution time.
     function withdraw(
-        uint256 _pid, 
-        uint256 _amount, 
-        uint256 _amountAMin, 
-        uint256 _amountBMin, 
+        uint256 _pid,
+        uint256 _amount,
+        uint256 _amountAMin,
+        uint256 _amountBMin,
         uint256 _deadline
     ) external nonReentrant {
         _withdraw(
-            _pid, 
-            _amount, 
-            msg.sender, 
-            false, 
+            _pid,
+            _amount,
+            msg.sender,
+            false,
             _amountAMin,
             _amountBMin,
             _deadline
         );
     }
 
-    function withdrawLP(
-        uint256 _pid, 
-        uint256 _amount
-    ) external nonReentrant {
-        _withdraw(
-            _pid, 
-            _amount, 
-            msg.sender, 
-            true, 
-            0,
-            0,
-            10000000000000
-        );
+    function withdrawLP(uint256 _pid, uint256 _amount) external nonReentrant {
+        _withdraw(_pid, _amount, msg.sender, true, 0, 0, 10000000000000);
     }
 
     /// @notice Claim rewards.
@@ -264,15 +282,18 @@ contract LongStaking is Ownable, ReentrancyGuard {
     }
 
     function _withdraw(
-        uint256 _pid, 
-        uint256 _amount, 
+        uint256 _pid,
+        uint256 _amount,
         address _realUser,
-        bool _isLP, 
-        uint256 _amountAMin, 
-        uint256 _amountBMin, 
+        bool _isLP,
+        uint256 _amountAMin,
+        uint256 _amountBMin,
         uint256 _deadline
     ) private {
-        require(_realUser != address(0), "_withdraw: cannot point to a zero address.");
+        require(
+            _realUser != address(0),
+            "_withdraw: cannot point to a zero address."
+        );
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_realUser];
         require(user.amount >= _amount, "_withdraw: not good");
@@ -284,15 +305,15 @@ contract LongStaking is Ownable, ReentrancyGuard {
             _getReward(pool, user, _realUser);
         }
 
-        if(_amount > 0) {
+        if (_amount > 0) {
             user.amount = user.amount.sub(_amount);
-            pool.longToken.burn(_amount);
-            if(_isLP) {
+            pool.totalDeposit = pool.totalDeposit.sub(_amount);
+            if (_isLP) {
                 pool.lpToken.safeTransfer(_realUser, _amount);
             } else {
                 _removeLiquidity(
-                    pool.lpToken, 
-                    _amount, 
+                    pool.lpToken,
+                    _amount,
                     _realUser,
                     _amountAMin,
                     _amountBMin,
@@ -305,61 +326,69 @@ contract LongStaking is Ownable, ReentrancyGuard {
     }
 
     function _addLiquidity(
-        IERC20 _tokenA, 
-        IERC20 _tokenB, 
-        uint256 _amountA, 
-        uint256 _amountB, 
-        uint256 _amountAMin, 
-        uint256 _amountBMin, 
+        IERC20 _tokenA,
+        IERC20 _tokenB,
+        uint256 _amountA,
+        uint256 _amountB,
+        uint256 _amountAMin,
+        uint256 _amountBMin,
         uint256 _deadline
-    ) private returns(uint amountA, uint amountB, uint liquidity) {
+    )
+        private
+        returns (
+            uint256 amountA,
+            uint256 amountB,
+            uint256 liquidity
+        )
+    {
         (amountA, amountB, liquidity) = swapRouter.addLiquidity(
-            address(_tokenA), 
-            address(_tokenB), 
-            _amountA, 
-            _amountB, 
-            _amountAMin, 
-            _amountBMin, 
-            address(this), 
+            address(_tokenA),
+            address(_tokenB),
+            _amountA,
+            _amountB,
+            _amountAMin,
+            _amountBMin,
+            address(this),
             _deadline
         );
     }
 
     function _removeLiquidity(
-        IUniswapPair _lpToken, 
-        uint256 _amount, 
-        address _realUser, 
-        uint256 _amountAMin, 
-        uint256 _amountBMin, 
+        IUniswapPair _lpToken,
+        uint256 _amount,
+        address _realUser,
+        uint256 _amountAMin,
+        uint256 _amountBMin,
         uint256 _deadline
-    ) private returns(uint256 amountA, uint256 amountB) {
+    ) private returns (uint256 amountA, uint256 amountB) {
         IERC20 tokenA = IERC20(_lpToken.token0());
         IERC20 tokenB = IERC20(_lpToken.token1());
         (amountA, amountB) = swapRouter.removeLiquidity(
-            address(tokenA), 
-            address(tokenB), 
-            _amount, 
-            _amountAMin, 
-            _amountBMin, 
-            _realUser, 
+            address(tokenA),
+            address(tokenB),
+            _amount,
+            _amountAMin,
+            _amountBMin,
+            _realUser,
             _deadline
         );
-    }
-
-    function _masterDeposit(PoolInfo memory _pool, uint256 _amount) private {
-        _pool.longToken.mint(address(this), _amount);
-        masterChef.deposit(_pool.rootPid, _amount);
     }
 
     function _masterWithdraw(PoolInfo memory _pool, uint256 _amount) private {
         masterChef.withdraw(_pool.rootPid, _amount);
     }
 
-    function _getReward(PoolInfo memory _pool, UserInfo memory _user, address _account) private {
-        uint256 pending = _user.amount.mul(_pool.accNSDXPerShare).div(1e12).sub(_user.rewardDebt);
-        if(pending > 0) {
-            uint sendAmount = nsdx.balanceOf(address(this));
-            if(sendAmount > pending) {
+    function _getReward(
+        PoolInfo memory _pool,
+        UserInfo memory _user,
+        address _account
+    ) private {
+        uint256 pending = _user.amount.mul(_pool.accNSDXPerShare).div(1e12).sub(
+            _user.rewardDebt
+        );
+        if (pending > 0) {
+            uint256 sendAmount = nsdx.balanceOf(address(this));
+            if (sendAmount > pending) {
                 sendAmount = pending;
             }
             nsdx.safeTransfer(_account, sendAmount);
