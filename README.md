@@ -7,7 +7,7 @@ A DeFi protocol powered by smart contracts on the Polygon Blockchain that enable
 ### Mint nAsset
 
 ```JS
-contract.openPosition(
+mintContract.openPosition(
     assetToken, // nAsset token address
     cAssetToken, // collateral token address
     cAssetAmount, // collateral amount
@@ -19,10 +19,23 @@ contract.openPosition(
 
 Long Farm means `openPosition()` in Mint contract + `addLiquidity()` in SwapRouter contract
 
+```JS
+swapRouterContract.addLiquidity(
+    tokenA,
+    tokenB,
+    amountADesired,
+    amountBDesired,
+    amountAMin,
+    amountBMin,
+    to,
+    deadline
+)
+```
+
 ### Short Farm
 
 ```JS
-contract.openShortPosition(
+mintContract.openShortPosition(
     assetToken, // nAsset token address
     cAssetToken, // collateral token address
     cAssetAmount, // collateral amount
@@ -35,7 +48,7 @@ contract.openShortPosition(
 ### Deposit collateral and increase C-Ratio
 
 ```JS
-contract.deposit(
+mintContract.deposit(
     positionId, // position id
     cAssetAmount // collateral amount
 )
@@ -44,7 +57,7 @@ contract.deposit(
 ### Withdraw collateral from a position
 
 ```JS
-contract.withdraw(
+mintContract.withdraw(
     positionId, // position id
     cAssetAmount // collateral amount
 )
@@ -52,7 +65,7 @@ contract.withdraw(
 
 ### Mint more nAsset from an exist position
 ```JS
-contract.mint(
+mintContract.mint(
     positionId, // position ID
     assetAmount, // nAsset amount
     swapAmountMin, // Min amount you wanna received when sold to a swap if this position is a short position
@@ -62,7 +75,7 @@ contract.mint(
 
 ### Burn nAsset and increase C-Ratio
 ```JS
-contract.burn(
+mintContract.burn(
     positionId, // position id
     assetAmount // nAsset amount to be burned
 )
@@ -72,34 +85,35 @@ contract.burn(
 
 | Token Contracts | Mainnet                                                                                                       | Mumbai
 | ----- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| NSDX   | [0xE8d17b127BA8b9899a160D9a07b69bCa8E08bfc6](https://polygonscan.com/address/0xE8d17b127BA8b9899a160D9a07b69bCa8E08bfc6) |  [0x0b0E5B52e14152308f9F952FF19C67ebeB7560BB](https://mumbai.polygonscan.com/address/0x0b0E5B52e14152308f9F952FF19C67ebeB7560BB) |
-| USDC   | [0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174](https://polygonscan.com/address/0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174) |  [0xe4E1ec160dFb25eF68C0c158F436C6B8A219C112](https://mumbai.polygonscan.com/address/0xe4E1ec160dFb25eF68C0c158F436C6B8A219C112) |
-| UST   | [0xE6469Ba6D2fD6130788E0eA9C0a0515900563b59](https://polygonscan.com/address/0xE6469Ba6D2fD6130788E0eA9C0a0515900563b59) |  [](https://mumbai.polygonscan.com/address/) |
-| aUST   | [0xF28672b9DeA2611a2d22AB78Cb54cE2DD315aEaa](https://polygonscan.com/address/0xF28672b9DeA2611a2d22AB78Cb54cE2DD315aEaa) |  [](https://mumbai.polygonscan.com/address/) |
-| nSE/USDC   | [0x5f1BD282C552446887919E810901b55Bc6dA2ac4](https://polygonscan.com/address/0x5f1BD282C552446887919E810901b55Bc6dA2ac4) |  [](https://mumbai.polygonscan.com/address/) |
-| nSE   | [0xc7D14a939eE0265BEAB7456394E50Ccc6C665298](https://polygonscan.com/address/0xc7D14a939eE0265BEAB7456394E50Ccc6C665298) |  [](https://mumbai.polygonscan.com/address/) |
-| sSE   | [0xef4c2e11E136e2824d4Ec9bc4b147d8C38d931f5](https://polygonscan.com/address/0xef4c2e11E136e2824d4Ec9bc4b147d8C38d931f5) |  [](https://mumbai.polygonscan.com/address/) |
-| nTSLA/USDC   | [](https://polygonscan.com/address/) |  [](https://mumbai.polygonscan.com/address/) |
-| nTSLA   | [0xe532dcE6BEFe42Ca8767DFa2abFCE2b99087168B](https://polygonscan.com/address/0xe532dcE6BEFe42Ca8767DFa2abFCE2b99087168B) |  [](https://mumbai.polygonscan.com/address/) |
-| sTSLA   | [0x12C590aD53CD55677D15B9E2f7D5866B6E1931bB](https://polygonscan.com/address/0x12C590aD53CD55677D15B9E2f7D5866B6E1931bB) |  [](https://mumbai.polygonscan.com/address/) |
+| NSDX   | [0xE8d17b127BA8b9899a160D9a07b69bCa8E08bfc6](https://polygonscan.com/address/0xE8d17b127BA8b9899a160D9a07b69bCa8E08bfc6) |  [0x620c07ab0d26Fc22E346aadC895bc1eD84C6CF78](https://mumbai.polygonscan.com/address/0x620c07ab0d26Fc22E346aadC895bc1eD84C6CF78) |
+| USDC   | [0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174](https://polygonscan.com/address/0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174) |  [0x2F059f10b9c8F21eF509f0a00B1A4DC21511CdFf](https://mumbai.polygonscan.com/address/0x2F059f10b9c8F21eF509f0a00B1A4DC21511CdFf) |
+| UST   | [0xE6469Ba6D2fD6130788E0eA9C0a0515900563b59](https://polygonscan.com/address/0xE6469Ba6D2fD6130788E0eA9C0a0515900563b59) |  [0x06b7af58Da1361e528fD663b9f687a0df238Ef63](https://mumbai.polygonscan.com/address/0x06b7af58Da1361e528fD663b9f687a0df238Ef63) |
+| aUST   | [0xF28672b9DeA2611a2d22AB78Cb54cE2DD315aEaa](https://polygonscan.com/address/0xF28672b9DeA2611a2d22AB78Cb54cE2DD315aEaa) |  [0xC0b7210Cc4c0E829FfD6d113092887BF1542965B](https://mumbai.polygonscan.com/address/0xC0b7210Cc4c0E829FfD6d113092887BF1542965B) |
+| nSE/USDC   | [0x5f1BD282C552446887919E810901b55Bc6dA2ac4](https://polygonscan.com/address/0x5f1BD282C552446887919E810901b55Bc6dA2ac4) |  [0x9d74037228Aa739904086D4EC3b9FcBF2DaD28e1](https://mumbai.polygonscan.com/address/0x9d74037228Aa739904086D4EC3b9FcBF2DaD28e1) |
+| nSE   | [0xc7D14a939eE0265BEAB7456394E50Ccc6C665298](https://polygonscan.com/address/0xc7D14a939eE0265BEAB7456394E50Ccc6C665298) |  [0xd99dee10fBA100f0c1c5940A956C890a96bB17b4](https://mumbai.polygonscan.com/address/0xd99dee10fBA100f0c1c5940A956C890a96bB17b4) |
+| sSE   | [0xef4c2e11E136e2824d4Ec9bc4b147d8C38d931f5](https://polygonscan.com/address/0xef4c2e11E136e2824d4Ec9bc4b147d8C38d931f5) |  [0x2ABB64610959D097472d3c61ffA851b28288b72c](https://mumbai.polygonscan.com/address/0x2ABB64610959D097472d3c61ffA851b28288b72c) |
+| nTSLA/USDC   | [0x8dEf846Af4c574835D6406ceB442eEE57eE1C424](https://polygonscan.com/address/0x8dEf846Af4c574835D6406ceB442eEE57eE1C424) |  [0x66b9A44d9487175177698BCD9812dBdeeA08fb3D](https://mumbai.polygonscan.com/address/0x66b9A44d9487175177698BCD9812dBdeeA08fb3D) |
+| nTSLA   | [0xe532dcE6BEFe42Ca8767DFa2abFCE2b99087168B](https://polygonscan.com/address/0xe532dcE6BEFe42Ca8767DFa2abFCE2b99087168B) |  [0xC0837c7933e8e19F615453e978f76c1C72bc8d16](https://mumbai.polygonscan.com/address/0xC0837c7933e8e19F615453e978f76c1C72bc8d16) |
+| sTSLA   | [0x12C590aD53CD55677D15B9E2f7D5866B6E1931bB](https://polygonscan.com/address/0x12C590aD53CD55677D15B9E2f7D5866B6E1931bB) |  [0xC2a6701cC948e01375B6042466439F21CaeAe3ac](https://mumbai.polygonscan.com/address/0xC2a6701cC948e01375B6042466439F21CaeAe3ac) |
 
 | Main Contracts | Mainnet                                                                                                       | Mumbai
 | ----- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Mint   | [0xDf6ea9670E3f89555Eec716aADFD3fbf0F8a14FD](https://polygonscan.com/address/0xDf6ea9670E3f89555Eec716aADFD3fbf0F8a14FD) |  [0xDF9fC6774937bf42602be1F80aB3da8a0b2a8594](https://mumbai.polygonscan.com/address/0xDF9fC6774937bf42602be1F80aB3da8a0b2a8594) |
+| Mint   | [0xDf6ea9670E3f89555Eec716aADFD3fbf0F8a14FD](https://polygonscan.com/address/0xDf6ea9670E3f89555Eec716aADFD3fbf0F8a14FD) |  [0x3f4b4c27F22F768F6756f0Ab5AC7D8570A94253b](https://mumbai.polygonscan.com/address/0x3f4b4c27F22F768F6756f0Ab5AC7D8570A94253b) |
 | SwapRouter   | [0x270Ec6bE0C9D67370C2B247D5AF1CC0B7dED0d4a](https://polygonscan.com/address/0x270Ec6bE0C9D67370C2B247D5AF1CC0B7dED0d4a) |  [0xeF1F06F0a9645A143Eaccb543f5bda85A9BD21D9](https://mumbai.polygonscan.com/address/0xeF1F06F0a9645A143Eaccb543f5bda85A9BD21D9) |
 | SwapFactory   | [0xa07dD2e9fa20C14C45A28978041b4c64e45f7f97](https://polygonscan.com/address/0xa07dD2e9fa20C14C45A28978041b4c64e45f7f97) |  [0x03A8C741d36a8bF689A24C1F5d59cc122704E85F](https://mumbai.polygonscan.com/address/0x03A8C741d36a8bF689A24C1F5d59cc122704E85F) |
-| MasterChef   | [0x35cA0e02C4c16c94c4cC8B67D13d660b78414f95](https://polygonscan.com/address/0x35cA0e02C4c16c94c4cC8B67D13d660b78414f95) |  [0xCc2436221cC9C804c81A6A79aFA7D4aE68946c1b](https://mumbai.polygonscan.com/address/0xCc2436221cC9C804c81A6A79aFA7D4aE68946c1b) |
-| Admin   | [0xC01bd61922702D06fA0EA91D2672AEba4Cd7E6d3](https://polygonscan.com/address/0xC01bd61922702D06fA0EA91D2672AEba4Cd7E6d3) |  [0xA77fAaEE48b8DF3a212A3630CE200C5BFA3Ad2d6](https://mumbai.polygonscan.com/address/0xA77fAaEE48b8DF3a212A3630CE200C5BFA3Ad2d6) |
-| SwappableLib   | [0x29fEb014B517b33DEd6ED59D3c5d68F4E509b29b](https://polygonscan.com/address/0x29fEb014B517b33DEd6ED59D3c5d68F4E509b29b) |  [](https://mumbai.polygonscan.com/address/) |
-| Asset   | [0x6C1BAa725A126e9936A2627b7024c3f8c450E64C](https://polygonscan.com/address/0x6C1BAa725A126e9936A2627b7024c3f8c450E64C) |  [0x57F959245aE35e38d30a8AEc91Ab680C87072587](https://mumbai.polygonscan.com/address/0x57F959245aE35e38d30a8AEc91Ab680C87072587) |
-| Positions   | [0x0Dc84B14964234DCB4465874F9FF4778EBb2998a](https://polygonscan.com/address/0x0Dc84B14964234DCB4465874F9FF4778EBb2998a) |  [0xF8b28bAbbAFF14e1357f33ed7D167D36375692cD](https://mumbai.polygonscan.com/address/0xF8b28bAbbAFF14e1357f33ed7D167D36375692cD) |
-| ShortLock   | [0x1D7E96bf705bCeEF2d78286d74e940bDf1072345](https://polygonscan.com/address/0x1D7E96bf705bCeEF2d78286d74e940bDf1072345) |  [0x4DDcE09423397De69c4249868252506d9E08b0E0](https://mumbai.polygonscan.com/address/0x4DDcE09423397De69c4249868252506d9E08b0E0) |
-| ShortStaking   | [0x12531d4ac0669Fa24621C27D0541895b2eB0343d](https://polygonscan.com/address/0x12531d4ac0669Fa24621C27D0541895b2eB0343d) |  [0xfb99126453e15871fBCdbE8a206598F6818b4843](https://mumbai.polygonscan.com/address/0xfb99126453e15871fBCdbE8a206598F6818b4843) |
-| LongStaking   | [0x63213eCf311F60c52c6d00C7FE700f2BdCE353Bb](https://polygonscan.com/address/0x63213eCf311F60c52c6d00C7FE700f2BdCE353Bb) |  [0x96Dd2Ff469A9405a584C08B112c0AD9C1fab862A](https://mumbai.polygonscan.com/address/0x96Dd2Ff469A9405a584C08B112c0AD9C1fab862A) |
-| MultiCall   | [0x8F80B3E90787fdaca1eC438db5c50ECfeB49c8b5](https://polygonscan.com/address/0x8F80B3E90787fdaca1eC438db5c50ECfeB49c8b5) |  [0x2f4FA73dd91EB65642053846725EcD0fD09B1d63](https://mumbai.polygonscan.com/address/0x2f4FA73dd91EB65642053846725EcD0fD09B1d63) |
+| MasterChef   | [0x35cA0e02C4c16c94c4cC8B67D13d660b78414f95](https://polygonscan.com/address/0x35cA0e02C4c16c94c4cC8B67D13d660b78414f95) |  [0xFe12AddfCDa0047aE304ADe81cEA6eBEe304a35d](https://mumbai.polygonscan.com/address/0xFe12AddfCDa0047aE304ADe81cEA6eBEe304a35d) |
+| Admin   | [0xC01bd61922702D06fA0EA91D2672AEba4Cd7E6d3](https://polygonscan.com/address/0xC01bd61922702D06fA0EA91D2672AEba4Cd7E6d3) |  [0x51B6F9dc5a67fCF62c84E2314651100f8Bc5cF43](https://mumbai.polygonscan.com/address/0x51B6F9dc5a67fCF62c84E2314651100f8Bc5cF43) |
+| SwappableLib   | [0x29fEb014B517b33DEd6ED59D3c5d68F4E509b29b](https://polygonscan.com/address/0x29fEb014B517b33DEd6ED59D3c5d68F4E509b29b) |  [0x168c84de27427e7c70818fDae0AA1013fb349619](https://mumbai.polygonscan.com/address/0x168c84de27427e7c70818fDae0AA1013fb349619) |
+| Asset   | [0x6C1BAa725A126e9936A2627b7024c3f8c450E64C](https://polygonscan.com/address/0x6C1BAa725A126e9936A2627b7024c3f8c450E64C) |  [0xdb5Bdc9a9f4d5C0b2790F55Ff12f5409c021e990](https://mumbai.polygonscan.com/address/0xdb5Bdc9a9f4d5C0b2790F55Ff12f5409c021e990) |
+| Positions   | [0x0Dc84B14964234DCB4465874F9FF4778EBb2998a](https://polygonscan.com/address/0x0Dc84B14964234DCB4465874F9FF4778EBb2998a) |  [0x23099D88645526e9AD00e27f441247824f2A2703](https://mumbai.polygonscan.com/address/0x23099D88645526e9AD00e27f441247824f2A2703) |
+| ShortLock   | [0x1D7E96bf705bCeEF2d78286d74e940bDf1072345](https://polygonscan.com/address/0x1D7E96bf705bCeEF2d78286d74e940bDf1072345) |  [0xbEc3621C7336C90FB8BA6a096FDF2beCc5928B06](https://mumbai.polygonscan.com/address/0xbEc3621C7336C90FB8BA6a096FDF2beCc5928B06) |
+| ShortStaking   | [0x12531d4ac0669Fa24621C27D0541895b2eB0343d](https://polygonscan.com/address/0x12531d4ac0669Fa24621C27D0541895b2eB0343d) |  [0x2307b6DD2D29e4D8a48bfE759228A202EF67452F](https://mumbai.polygonscan.com/address/0x2307b6DD2D29e4D8a48bfE759228A202EF67452F) |
+| LongStaking   | [0x63213eCf311F60c52c6d00C7FE700f2BdCE353Bb](https://polygonscan.com/address/0x63213eCf311F60c52c6d00C7FE700f2BdCE353Bb) |  [0x620f061cd682013863742D4e8B4EFC992aC9807B](https://mumbai.polygonscan.com/address/0x620f061cd682013863742D4e8B4EFC992aC9807B) |
+| MultiCall   | [0x8F80B3E90787fdaca1eC438db5c50ECfeB49c8b5](https://polygonscan.com/address/0x8F80B3E90787fdaca1eC438db5c50ECfeB49c8b5) |  [0x872808abd468F80c80213f48a5E917b5F5c371f8](https://mumbai.polygonscan.com/address/0x872808abd468F80c80213f48a5E917b5F5c371f8) |
 | Liquidation   | [0x5d5E3318421D3C38E5fa415c8A55e2f16caef385](https://polygonscan.com/address/0x5d5E3318421D3C38E5fa415c8A55e2f16caef385) |  [](https://mumbai.polygonscan.com/address/) |
 
 | Oracle Contracts | Mainnet                                                                                                       | Mumbai
 | ----- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| nSE Oracle   | [0xcc73e00db7a6FD589a30BbE2E957086b8d7D3331](https://polygonscan.com/address/0xcc73e00db7a6FD589a30BbE2E957086b8d7D3331) |  [](https://mumbai.polygonscan.com/address/) |
-| nTSLA Oracle   | [](https://polygonscan.com/address/) |  [](https://mumbai.polygonscan.com/address/) |
+| nSE Oracle   | [0xcc73e00db7a6FD589a30BbE2E957086b8d7D3331](https://polygonscan.com/address/0xcc73e00db7a6FD589a30BbE2E957086b8d7D3331) |  [0xEEeEB911f1c30217EfFC662B157f8BAF91f1133b](https://mumbai.polygonscan.com/address/0xEEeEB911f1c30217EfFC662B157f8BAF91f1133b) |
+| nTSLA Oracle   | [0x567E67f456c7453c583B6eFA6F18452cDee1F5a8](https://polygonscan.com/address/0x567E67f456c7453c583B6eFA6F18452cDee1F5a8) |  [0xDb12E805d004698FC58F6e4fbdD876268DF2dfFe](https://mumbai.polygonscan.com/address/0xDb12E805d004698FC58F6e4fbdD876268DF2dfFe) |
+| aUST Oracle   | [0x7958b7693bE15a601cFef8e091c69f18d738e4E8](https://polygonscan.com/address/0x7958b7693bE15a601cFef8e091c69f18d738e4E8) |  [0xC6Be21D8533e90Fd136905eBe70c9d9148237f2d](https://mumbai.polygonscan.com/address/0xC6Be21D8533e90Fd136905eBe70c9d9148237f2d) |
