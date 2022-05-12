@@ -96,6 +96,9 @@ mintContract.burn(
 | nTSLA/USDC   | [0x8dEf846Af4c574835D6406ceB442eEE57eE1C424](https://polygonscan.com/address/0x8dEf846Af4c574835D6406ceB442eEE57eE1C424) |  [0x66b9A44d9487175177698BCD9812dBdeeA08fb3D](https://mumbai.polygonscan.com/address/0x66b9A44d9487175177698BCD9812dBdeeA08fb3D) |
 | nTSLA   | [0xe532dcE6BEFe42Ca8767DFa2abFCE2b99087168B](https://polygonscan.com/address/0xe532dcE6BEFe42Ca8767DFa2abFCE2b99087168B) |  [0xC0837c7933e8e19F615453e978f76c1C72bc8d16](https://mumbai.polygonscan.com/address/0xC0837c7933e8e19F615453e978f76c1C72bc8d16) |
 | sTSLA   | [0x12C590aD53CD55677D15B9E2f7D5866B6E1931bB](https://polygonscan.com/address/0x12C590aD53CD55677D15B9E2f7D5866B6E1931bB) |  [0xC2a6701cC948e01375B6042466439F21CaeAe3ac](https://mumbai.polygonscan.com/address/0xC2a6701cC948e01375B6042466439F21CaeAe3ac) |
+| nAAPL/USDC   | [0xEA6507115D1194Bfe733bF0053d8Aa8EAc3032a8](https://polygonscan.com/address/0xEA6507115D1194Bfe733bF0053d8Aa8EAc3032a8) |   |
+| nAAPL   | [0xb37AFD7c8C0AbAe135Bb144bb6F37E8a3b5796ca](https://polygonscan.com/address/0xb37AFD7c8C0AbAe135Bb144bb6F37E8a3b5796ca) |   |
+| sAAPL   | [0xF3F2a9dCd7388Ad8289E7fCe7039Dd5a4068d81b](https://polygonscan.com/address/0xF3F2a9dCd7388Ad8289E7fCe7039Dd5a4068d81b) |   |
 
 | Main Contracts | Mainnet                                                                                                       | Mumbai
 | ----- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
