@@ -95,7 +95,7 @@ mintContract.burn(
 | nTSLA   | [0xe532dcE6BEFe42Ca8767DFa2abFCE2b99087168B](https://polygonscan.com/address/0xe532dcE6BEFe42Ca8767DFa2abFCE2b99087168B) |  [0x975ABb141eD45F8dAaCA49C15EF8D3650AbE0cc9](https://mumbai.polygonscan.com/address/0x975ABb141eD45F8dAaCA49C15EF8D3650AbE0cc9) |
 | sTSLA   | [0x12C590aD53CD55677D15B9E2f7D5866B6E1931bB](https://polygonscan.com/address/0x12C590aD53CD55677D15B9E2f7D5866B6E1931bB) |  [0x362dB5C57CbD3CF43491134F79c334bC2a10db86](https://mumbai.polygonscan.com/address/0x362dB5C57CbD3CF43491134F79c334bC2a10db86) |
 | nAAPL/USDC   | [0xEA6507115D1194Bfe733bF0053d8Aa8EAc3032a8](https://polygonscan.com/address/0xEA6507115D1194Bfe733bF0053d8Aa8EAc3032a8) | [0xDD8235664df4Ca35Ee0B814e4B4F80B82961c89f](https://mumbai.polygonscan.com/address/0xDD8235664df4Ca35Ee0B814e4B4F80B82961c89f) |
-| nAAPL   | [0xb37AFD7c8C0AbAe135Bb144bb6F37E8a3b5796ca](https://polygonscan.com/address/0xb37AFD7c8C0AbAe135Bb144bb6F37E8a3b5796ca) | [0x4e0726a2eC86042321Dd7C62aa1AA357D81638cC](https://mumbai.polygonscan.com/address/0x4e0726a2eC86042321Dd7C62aa1AA357D81638cC) |
+| nAAPL   | [0xb37AFD7c8C0AbAe135Bb144bb6F37E8a3b5796ca](https://polygonscan.com/address/0xb37AFD7c8C0AbAe135Bb144bb6F37E8a3b5796ca) | [0xe2D34f6f9939ACDDdAB8612B0ADbE7B9f3c8F0c0](https://mumbai.polygonscan.com/address/0xe2D34f6f9939ACDDdAB8612B0ADbE7B9f3c8F0c0) |
 | sAAPL   | [0xF3F2a9dCd7388Ad8289E7fCe7039Dd5a4068d81b](https://polygonscan.com/address/0xF3F2a9dCd7388Ad8289E7fCe7039Dd5a4068d81b) | [0x4e0726a2eC86042321Dd7C62aa1AA357D81638cC](https://mumbai.polygonscan.com/address/0x4e0726a2eC86042321Dd7C62aa1AA357D81638cC) |
 
 | Main Contracts | Mainnet                                                                                                       | Mumbai
